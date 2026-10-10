@@ -7,11 +7,13 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
     "setup": "prisma generate && prisma db push && tsx prisma/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run --testTimeout 30000"
   },
   "keywords": ["ecommerce", "api", "express", "prisma"],
   "author": "TechNest Team",

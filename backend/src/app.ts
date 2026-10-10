@@ -12,7 +12,8 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import { sendError, sendSuccess } from './utils/apiResponse.js';
 
 export const app = express();
-
+// Required behind Vercel's proxy so secure cookies work
+app.set('trust proxy', 1);
 // Security middlewares
 app.use(
   helmet({
@@ -20,9 +21,18 @@ app.use(
   })
 );
 
+const allowedOrigins = [
+  ENV.CLIENT_URL.replace(/\/+$/, ''),
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+].filter((origin) => origin.length > 0);
+
 app.use(
   cors({
-    origin: [ENV.CLIENT_URL, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   })
 );

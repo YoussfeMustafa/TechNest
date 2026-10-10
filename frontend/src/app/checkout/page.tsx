@@ -22,7 +22,7 @@ import {
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { cart, language, currency, user, fetchCart } = useStore();
+  const { cart, language, currency, user, authReady, fetchCart } = useStore();
   const t = translations[language];
 
   const prefilledCoupon = searchParams.get('coupon') || '';
@@ -48,6 +48,13 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [orderSuccess, setOrderSuccess] = useState<any>(null);
+
+  useEffect(() => {
+    if (authReady && !user) {
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+    }
+  }, [authReady, user, router]);
 
   // Load saved addresses if authenticated
   useEffect(() => {
@@ -147,6 +154,14 @@ function CheckoutContent() {
   };
 
   // Order Confirmed Screen
+  if (!authReady || !user) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center font-bold text-xs text-slate-400">
+        {language === 'ar' ? 'جارٍ تحميل صفحة الدفع...' : 'Loading checkout...'}
+      </div>
+    );
+  }
+
   if (orderSuccess) {
     return (
       <div className="py-12 max-w-xl mx-auto text-center space-y-6">
@@ -501,4 +516,3 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
-

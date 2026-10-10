@@ -6,6 +6,7 @@ interface AppState {
   language: Language;
   currency: Currency;
   user: User | null;
+  authReady: boolean;
   cart: Cart;
   wishlistIds: string[];
   compareList: Product[];
@@ -17,6 +18,7 @@ interface AppState {
   setLanguage: (lang: Language) => void;
   setCurrency: (curr: Currency) => void;
   setUser: (user: User | null) => void;
+  setAuthReady: (ready: boolean) => void;
   logout: () => Promise<void>;
 
   setIsCartOpen: (open: boolean) => void;
@@ -43,6 +45,7 @@ export const useStore = create<AppState>((set, get) => ({
   language: 'ar', // Default to Arabic as Dubai Phone alternative, switchable instantly
   currency: 'EGP',
   user: null,
+  authReady: false,
   cart: { items: [], itemCount: 0, subtotal: 0 },
   wishlistIds: [],
   compareList: [],
@@ -79,14 +82,20 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
+  setAuthReady: (authReady) => set({ authReady }),
+
   logout: async () => {
+    const refreshToken = typeof window !== 'undefined'
+      ? localStorage.getItem('technest_refresh_token')
+      : null;
     try {
-      await api.logout();
+      await api.logout(refreshToken);
     } catch (e) {
       // Ignore network errors on logout
     }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('technest_access_token');
+      localStorage.removeItem('technest_refresh_token');
       localStorage.removeItem('technest_user');
     }
     set({ user: null, cart: { items: [], itemCount: 0, subtotal: 0 } });

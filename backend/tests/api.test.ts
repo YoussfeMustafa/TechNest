@@ -5,6 +5,7 @@ import { prisma } from '../src/config/db.js';
 
 describe('TechNest Backend Critical Integration Tests', () => {
   let customerToken: string;
+  let customerRefreshToken: string;
   let testProductId: string;
   let testVariantId: string;
   let initialStock = 0;
@@ -33,11 +34,37 @@ describe('TechNest Backend Critical Integration Tests', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.accessToken).toBeDefined();
+    expect(res.body.data.refreshToken).toBeDefined();
     expect(res.body.data.user.email).toBe('customer@technest.com');
     customerToken = res.body.data.accessToken;
+    customerRefreshToken = res.body.data.refreshToken;
   });
 
-  it('2. Products Catalog: Fetch products with filtering, search, and pagination', async () => {
+  it('2. Refresh and Logout: Refresh accepts a body token and logout clears both cookies', async () => {
+    const refreshRes = await request(app)
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: customerRefreshToken });
+
+    expect(refreshRes.status).toBe(200);
+    expect(refreshRes.body.data.accessToken).toBeDefined();
+    expect(refreshRes.headers['set-cookie']).toEqual(
+      expect.arrayContaining([expect.stringContaining('access_token=')])
+    );
+
+    const logoutRes = await request(app)
+      .post('/api/v1/auth/logout')
+      .send({ refreshToken: customerRefreshToken });
+
+    expect(logoutRes.status).toBe(200);
+    expect(logoutRes.headers['set-cookie']).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('access_token=;'),
+        expect.stringContaining('refresh_token=;'),
+      ])
+    );
+  });
+
+  it('3. Products Catalog: Fetch products with filtering, search, and pagination', async () => {
     const res = await request(app)
       .get('/api/v1/products?limit=5&sort=price-asc');
 
@@ -47,7 +74,7 @@ describe('TechNest Backend Critical Integration Tests', () => {
     expect(res.body.meta.total).toBeGreaterThan(0);
   });
 
-  it('3. Cart Flow: Add item to user cart and verify calculated totals', async () => {
+  it('4. Cart Flow: Add item to user cart and verify calculated totals', async () => {
     const res = await request(app)
       .post('/api/v1/cart/items')
       .set('Authorization', `Bearer ${customerToken}`)
@@ -63,7 +90,35 @@ describe('TechNest Backend Critical Integration Tests', () => {
     expect(res.body.data.subtotal).toBeGreaterThan(0);
   });
 
-  it('4. Checkout & Stock Decrement: Place order and verify atomic stock decrement', async () => {
+  it('5. Guest Cart Merge: Move the session cart into the signed-in customer cart', async () => {
+    const sessionId = `test-guest-${Date.now()}`;
+    const guestCartRes = await request(app)
+      .post('/api/v1/cart/items')
+      .set('x-session-id', sessionId)
+      .send({
+        productId: testProductId,
+        variantId: testVariantId,
+        quantity: 1,
+      });
+
+    expect(guestCartRes.status).toBe(200);
+    expect(guestCartRes.body.data.itemCount).toBe(1);
+
+    const mergeRes = await request(app)
+      .post('/api/v1/cart/merge')
+      .set('Authorization', `Bearer ${customerToken}`)
+      .set('x-session-id', sessionId)
+      .send({ guestItems: [] });
+
+    expect(mergeRes.status).toBe(200);
+    const mergedItem = mergeRes.body.data.items.find(
+      (item: { productId: string; variantId: string }) =>
+        item.productId === testProductId && item.variantId === testVariantId
+    );
+    expect(mergedItem.quantity).toBeGreaterThanOrEqual(2);
+  });
+
+  it('6. Checkout & Stock Decrement: Place order and verify atomic stock decrement', async () => {
     // Fetch variant stock before order
     const variantBefore = await prisma.productVariant.findUnique({
       where: { id: testVariantId },
@@ -96,6 +151,7 @@ describe('TechNest Backend Critical Integration Tests', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.orderNumber).toBeDefined();
     expect(res.body.data.status).toBe('PENDING');
+    expect(res.body.data.discount).toBeGreaterThan(0);
 
     // Verify stock was decremented atomically in database
     const variantAfter = await prisma.productVariant.findUnique({
@@ -104,7 +160,7 @@ describe('TechNest Backend Critical Integration Tests', () => {
     expect(variantAfter!.stock).toBe(stockBefore - 1);
   });
 
-  it('5. Order Cancellation: Cancel order and verify stock restoration', async () => {
+  it('7. Order Cancellation: Cancel order and verify stock restoration', async () => {
     // Fetch customer's latest order
     const ordersRes = await request(app)
       .get('/api/v1/orders')

@@ -8,38 +8,92 @@
   --font-inter: 'Inter', sans-serif;
   --font-cairo: 'Cairo', sans-serif;
 
-  --bg-primary: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-card: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --header-bg: #0b1329;
-  --header-text: #ffffff;
-  --badge-bg: #eff6ff;
-  --badge-text: #2563eb;
+  --token-primary: 37 99 235;
+  --token-primary-hover: 29 78 216;
+  --token-primary-text: 37 99 235;
+  --token-primary-light: 147 197 253;
+  --token-primary-soft: 239 246 255;
+  --token-primary-border: 191 219 254;
+  --token-primary-deep: 30 58 138;
+  --token-accent: 249 115 22;
+  --token-accent-text: 194 65 12;
+  --token-accent-strong: 194 65 12;
+  --token-accent-soft: 255 247 237;
+  --token-accent-border: 254 215 170;
+  --token-accent-deep: 124 45 18;
+  --token-success: 22 163 74;
+  --token-success-text: 21 128 61;
+  --token-success-strong: 21 128 61;
+  --token-success-soft: 240 253 244;
+  --token-success-border: 187 247 208;
+  --token-success-deep: 22 101 52;
+  --token-danger: 220 38 38;
+  --token-danger-text: 185 28 28;
+  --token-danger-strong: 185 28 28;
+  --token-danger-soft: 254 242 242;
+  --token-danger-border: 254 202 202;
+  --token-danger-deep: 153 27 27;
+  --token-bg: 248 250 252;
+  --token-bg-deep: 15 23 42;
+  --token-card: 255 255 255;
+  --token-surface-muted: 241 245 249;
+  --token-text: 15 23 42;
+  --token-text-strong: 15 23 42;
+  --token-slate-dark-surface: 15 23 42;
+  --token-text-secondary: 100 116 139;
+  --token-muted: 100 116 139;
+  --token-border: 226 232 240;
+  --token-border-strong: 203 213 225;
+  --token-white: 255 255 255;
+  --token-black: 15 23 42;
+  --token-header-bg: 11 18 32;
 }
 
 .dark {
-  --bg-primary: #090d16;
-  --bg-surface: #0f172a;
-  --bg-card: #131b2e;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --border-subtle: #1e293b;
-  --border-strong: #334155;
-  --header-bg: #080d1a;
-  --header-text: #ffffff;
-  --badge-bg: #172554;
-  --badge-text: #60a5fa;
+  --token-primary: 59 130 246;
+  --token-primary-hover: 96 165 250;
+  --token-primary-text: 96 165 250;
+  --token-primary-light: 147 197 253;
+  --token-primary-soft: 23 37 84;
+  --token-primary-border: 30 64 175;
+  --token-primary-deep: 30 58 138;
+  --token-accent: 251 146 60;
+  --token-accent-text: 253 186 116;
+  --token-accent-strong: 253 186 116;
+  --token-accent-soft: 67 35 17;
+  --token-accent-border: 124 45 18;
+  --token-accent-deep: 254 215 170;
+  --token-success: 22 163 74;
+  --token-success-text: 74 222 128;
+  --token-success-strong: 74 222 128;
+  --token-success-soft: 5 46 22;
+  --token-success-border: 22 101 52;
+  --token-success-deep: 187 247 208;
+  --token-danger: 220 38 38;
+  --token-danger-text: 248 113 113;
+  --token-danger-strong: 248 113 113;
+  --token-danger-soft: 69 10 10;
+  --token-danger-border: 127 29 29;
+  --token-danger-deep: 254 202 202;
+  --token-bg: 11 18 32;
+  --token-bg-deep: 11 18 32;
+  --token-card: 19 28 46;
+  --token-surface-muted: 30 41 59;
+  --token-text: 229 231 235;
+  --token-text-strong: 229 231 235;
+  --token-slate-dark-surface: 19 28 46;
+  --token-text-secondary: 148 163 184;
+  --token-muted: 148 163 184;
+  --token-border: 30 41 59;
+  --token-border-strong: 51 65 85;
+  --token-white: 229 231 235;
+  --token-black: 2 6 23;
+  --token-header-bg: 11 18 32;
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: rgb(var(--token-bg));
+  color: rgb(var(--token-text));
   font-family: var(--font-inter);
   overflow-x: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
@@ -60,32 +114,42 @@ html[lang='ar'] body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgb(var(--token-border-strong));
   border-radius: 9999px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgb(var(--token-border-strong));
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgb(var(--token-muted));
 }
 
 /* Glassmorphism helpers */
 .glass-header {
-  background: rgba(11, 19, 41, 0.95);
+  background: rgb(var(--token-header-bg) / 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgb(var(--token-card) / 0.85);
   backdrop-filter: blur(8px);
 }
 
 .dark .glass-card {
-  background: rgba(19, 27, 46, 0.85);
+  background: rgb(var(--token-card) / 0.85);
+}
+
+.dark :is(.bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-indigo-500, .bg-indigo-600, .bg-indigo-700).text-white,
+.dark :is(.bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-indigo-500, .bg-indigo-600, .bg-indigo-700) .text-white,
+.bg-amber-500.text-white,
+.bg-orange-500.text-white,
+.bg-emerald-500.text-white,
+.dark .bg-gradient-to-r.from-blue-600.to-indigo-600.text-white,
+.dark .bg-gradient-to-r.from-blue-600.to-indigo-600 .text-white {
+  color: rgb(var(--token-black));
 }
 
 /* RTL Helpers */

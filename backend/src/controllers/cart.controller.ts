@@ -290,7 +290,8 @@ export async function clearCart(req: AuthenticatedRequest, res: Response, next: 
 export async function mergeGuestCart(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.userId;
-    const { sessionId, guestItems } = req.body;
+    const sessionId = req.headers['x-session-id'] as string | undefined || req.body.sessionId;
+    const { guestItems } = req.body;
 
     if (!userId) return sendError(res, 'Unauthorized', 401);
 

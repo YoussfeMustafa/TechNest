@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
@@ -18,6 +18,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('message') === 'session-expired') {
+      setError(language === 'ar'
+        ? 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.'
+        : 'Your session expired. Please sign in again.');
+    }
+  }, [language]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -27,14 +36,22 @@ export default function LoginPage() {
       const res = await api.login({ email, password });
       if (res.success && res.data) {
         localStorage.setItem('technest_access_token', res.data.accessToken);
+        if (res.data.refreshToken) {
+          localStorage.setItem('technest_refresh_token', res.data.refreshToken);
+        }
         setUser(res.data.user);
+        await api.mergeCart([]);
         await fetchCart();
         await fetchWishlist();
 
+        const requestedPath = new URLSearchParams(window.location.search).get('returnTo');
+        const returnTo = requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+          ? requestedPath
+          : '/';
         if (res.data.user.role === 'ADMIN') {
           router.push('/admin');
         } else {
-          router.push('/');
+          router.push(returnTo);
         }
       }
     } catch (err: any) {

@@ -203,7 +203,7 @@ export async function createOrder(req: AuthenticatedRequest, res: Response, next
       }
 
       return createdOrder;
-    });
+    }, { timeout: 20000 });
 
     return sendSuccess(res, result, 'Order placed successfully', 201);
   } catch (error) {

@@ -5,7 +5,7 @@ import fs from 'fs';
 import { sendSuccess, sendError } from '../utils/apiResponse.js';
 import { ENV } from '../config/env.js';
 
-const uploadDir = ENV.UPLOAD_DIR || './uploads';
+const uploadDir = ENV.UPLOAD_DIR;
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

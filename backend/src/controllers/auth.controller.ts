@@ -8,6 +8,13 @@ import { sendSuccess, sendError } from '../utils/apiResponse.js';
 import { AuthenticatedRequest } from '../middlewares/auth.js';
 import { sendEmail } from '../utils/mailer.js';
 
+const COOKIE_SAME_SITE: 'none' | 'lax' = ENV.NODE_ENV === 'production' ? 'none' : 'lax';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: ENV.NODE_ENV === 'production',
+  sameSite: COOKIE_SAME_SITE,
+};
+
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
     const { name, email, phone, password } = req.body;
@@ -50,16 +57,12 @@ export async function register(req: Request, res: Response, next: NextFunction) 
 
     // Set cookies
     res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...COOKIE_OPTIONS,
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...COOKIE_OPTIONS,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -74,6 +77,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
           role: user.role,
         },
         accessToken,
+        refreshToken,
       },
       'User registered successfully',
       201
@@ -116,16 +120,12 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     });
 
     res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...COOKIE_OPTIONS,
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...COOKIE_OPTIONS,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -140,6 +140,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
           role: user.role,
         },
         accessToken,
+        refreshToken,
       },
       'Login successful'
     );
@@ -150,7 +151,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
 export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
-    const refreshToken = req.cookies?.refresh_token;
+    const refreshToken = req.cookies?.refresh_token || req.body?.refreshToken;
 
     if (refreshToken) {
       await prisma.refreshToken.deleteMany({
@@ -158,8 +159,8 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
       });
     }
 
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    res.clearCookie('access_token', COOKIE_OPTIONS);
+    res.clearCookie('refresh_token', COOKIE_OPTIONS);
 
     return sendSuccess(res, null, 'Logged out successfully');
   } catch (error) {
@@ -196,9 +197,7 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
     });
 
     res.cookie('access_token', newAccessToken, {
-      httpOnly: true,
-      secure: ENV.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...COOKIE_OPTIONS,
       maxAge: 15 * 60 * 1000,
     });
 

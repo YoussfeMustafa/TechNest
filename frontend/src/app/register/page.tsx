@@ -29,10 +29,19 @@ export default function RegisterPage() {
       const res = await api.register({ name, email, phone, password });
       if (res.success && res.data) {
         localStorage.setItem('technest_access_token', res.data.accessToken);
+        if (res.data.refreshToken) {
+          localStorage.setItem('technest_refresh_token', res.data.refreshToken);
+        }
         setUser(res.data.user);
+        await api.mergeCart([]);
         await fetchCart();
         await fetchWishlist();
-        router.push('/');
+        const requestedPath = new URLSearchParams(window.location.search).get('returnTo');
+        router.push(
+          requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+            ? requestedPath
+            : '/'
+        );
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
